@@ -5,6 +5,9 @@
     "sub_directories": [
         {
             "name": "Spark"
+        },
+        {
+            "name": "hadoop"
         }
     ],
     "version": "1"
