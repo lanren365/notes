@@ -8,6 +8,9 @@
         },
         {
             "name": "hadoop"
+        },
+        {
+            "name": "Kafka"
         }
     ],
     "version": "1"
