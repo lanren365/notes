@@ -12,7 +12,7 @@
 ```
 
 在**Execute The Requested Command**前加入如下代码：
-```console
+```shell
 CATALINA_OPTS="$CATALINA_OPTS -Djava.rmi.server.hostname=10.12.116.135 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8088 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=true"
 ```
 其中的 hostname换成你本机的ip， port 默认为8088。
@@ -23,7 +23,7 @@ cd /usr/java/jdk1.8.0_45/jre/lib/management
 cp jmxremote.password.template jmxremote.password
 ```
 编辑最后的账户密码，去掉注释，密码改下别用默认的。
-```console
+```shell
 # Following are two commented-out entries.  The "measureRole" role has
 # password "QED".  The "controlRole" role has password "R&D".
 #
@@ -31,16 +31,16 @@ monitorRole  QEDworld
 controlRole   R&Dhello
 ```
 把文件改为运行 tomcat 的用户，如果已经是，则不需要修改
-```console
+```shell
 chown admin jmxremote.password jmxremote.access
 chgrp admin jmxremote.password jmxremote.access
 ```
 修改文件权限600，这是 java 的规范，防止别的用户看到你密码
-```console
+```shell
 chmod 600 jmxremote.access jmxremote.password
 ```
 修改完之后文件的模样:）
-```console
+```shell
 [root@vm-xy-mms-nfsq management]# ll
 总用量 32
 -rw------- 1 admin admin  3998 4月  11 2015 jmxremote.access
@@ -51,12 +51,12 @@ chmod 600 jmxremote.access jmxremote.password
 ```
 ## 重新启动tomcat
 重新启动 tomcat：
-```console
+```shell
 sh bin/shutdown.sh
 sh bin/startup.sh
 ```
 看 logs日志，能看到刚刚catalina.sh配置的jmx配置信息，确认 tomcat 启动正常,无报错。
-```console
+```shell
 17-Apr-2016 09:54:38.152 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.rmi.server.hostname=10.3.0.105
 17-Apr-2016 09:54:38.152 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcom.sun.management.jmxremote
 17-Apr-2016 09:54:38.152 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcom.sun.management.jmxremote.port=8088

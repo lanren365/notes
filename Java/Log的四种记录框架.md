@@ -17,3 +17,14 @@ logback-access访问模块与Servlet容器集成提供通过Http来访问日记�
 前面介绍过Log4j，这里要单独介绍一下Log4j2，之所以要单独拿出来说，而没有和Log4j放在一起介绍，是因为作者认为，Log4j2已经不仅仅是Log4j的一个升级版本了，而是从头到尾被重写的，这可以认为这其实就是完全不同的两个框架。
 
 关于Log4j2解决了Log4j的哪些问题，Log4j2相比较于Log4j、j.u.l和logback有哪些优势，我们在后续的文章中介绍。
+# 2. Log4j2配置文件的说明
+onMatch和onMismatch都有三个属性值，分别为Accept、DENY和NEUTRAL
+
+分别介绍这两个配置项的三个属性值：
+
+onMatch="ACCEPT" 表示匹配该级别及以上
+onMatch="DENY" 表示不匹配该级别及以上
+onMatch="NEUTRAL" 表示该级别及以上的，由下一个filter处理，如果当前是最后一个，则表示匹配该级别及以上
+onMismatch="ACCEPT" 表示匹配该级别以下
+onMismatch="NEUTRAL" 表示该级别及以下的，由下一个filter处理，如果当前是最后一个，则不匹配该级别以下的
+onMismatch="DENY" 表示不匹配该级别以下的

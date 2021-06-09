@@ -1,0 +1,5 @@
+vnote_backup_file_826537664 E:/learn/notes/Java/SpringBoot相关/SpringBoot本地缓存(Caffeine).md
+# 1. 本地缓存的意义
+本地缓存的使用可以提高系统的稳定性，使节点可以不强依赖分布试缓存系统。另外，由于要网络传输，所以可能有些对象不适合做网络缓存，所以本地缓存是有存在的价值的。
+# 2. 如何在SpringBoot中增加本地缓存
+1. 配置在SpringApplicating中配置
