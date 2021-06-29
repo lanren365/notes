@@ -18,7 +18,7 @@
 **行为：** 特定代码的作用。  
 #### 1.5.1.2. 例子
 在类`BoundedBuffer`的`get`方法上设置触发器。假设`get`方法中有代码`Object.wait()`。如果`buffer`是空的。
-```apache
+```js
 RULE throw on Nth empty get
 CLASS org.my.BoundedBuffer
 METHOD get()
@@ -34,7 +34,7 @@ ENDRULE
     3. `DO`定义了将要执行的动做.本例中当条件被处发，则会抛出`ClosedException`的异常
 ### 1.5.2. 规则绑定以及参数化
 上例中涉及到的初始化规则定义如下;
-```apache
+```js
 RULE set up buffer countDown
 CLASS org.my.BoundedBuffer
 METHOD <init>(int)
@@ -74,7 +74,7 @@ Byteman规则执行器引擎由一个规则解析器，类型检查器和解释�
 ## 1.6. Byteman规则语言
 ### 1.6.1. 注解
  规则定义是由有序的规则定义语句，以及穿插的注解组成 。注解可以放在规则定义中，也可以放在之前或之后，但是必须和规则语句不在一行上。注解由`#`开头，如：
- ```apache
+ ```js
  ######################################
 # Example Rule Set
 #
@@ -86,7 +86,7 @@ ENDRULE
 ```
 ### 1.6.2. 规则事件
 规则事件指定了用目标类访问的具体方位（某个目标方法），目标方法可以是静态方法，可以是实例方法，也可以是构造方法。如果没有指定具体的方位，那么，将使用缺省的方位（目标方法的入口）:no_mouth:所以对于一个简单的规则基础模式如下：
-```apache
+```js
 # rule skeleton
 RULE <rule name>
 CLASS <class name>
@@ -97,7 +97,7 @@ DO <actions>
 ENDRULE
 ```
 规则的名字跟随在`RULE`关键字之后，名字必须是非空自由形式文本。规则的名字不必是唯一的，但是名字要能表达规则的作用，这样有助于调试。当解析、类型检查，编译或执行时遇到错误，则规则的名字会被输出出来。类名和方法名是跟在关键字`CLASS`和`METHOD`之后，并且必须和关键字在同一行。类名可以指定或不指定包名。方法名，可以指定或不指定参数列表或返回类型。构造函数通过`<init>`来指定。列如：
-```apache
+```js
 # class and method example
 RULE any commit on any coordinator engine
 CLASS CoordinatorEngine
@@ -106,7 +106,7 @@ METHOD commit
 ENDRULE
 ```
 上例规则表示匹配所有的类名是`CordinatorEngine`的类，不管它的包名是什么。当任何是这个名字的类被加载，则代理会在所有的`commint`方法之前插入一个触发点。如果有几个不同签名的这种方法出现，那么每个方法会插入一个触发点。更精确的匹配，可以加入某个特征，如可选的参数列表、返回值类型。例如：
-```apache
+```js
 # class and method example 2
 RULE commit with no arguments on wst11 coordinator engine
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -122,7 +122,7 @@ ENDRULE
 * 内部类可以使用`$`来界定那个是外部的类，那个是内部的。如：`org.my.List$Cons`,`Map$Entry$Wrapper`。
 ### 1.6.2. 类规则vs接口规则
 Byteman规则可以附加到接口上也可以附加到类上。如果`CLASS`关键字被`INTERFACE`关键字替代，那么规则涉及到的类，都是要完成接口的。例如，下面的规则：
-```apache
+```js
 # interface rule example
 RULE commit with no arguments on any engine
 INTERFACE com.arjuna.wst11.messaging.engines.Engine
@@ -133,7 +133,7 @@ ENDRULE
 上面的例子，附加到了接口`Engine`的方法`commit`。如果`Engine`接口被两个类实现`CoordinatorEngine`和`ParticipantEngine` 那么规则有两个触发点，即： CoordinatorEngine.commit() 的开始点和ParticipantEngine.commit()的开始点。代理会确保每一个实现接口的类被执行，包括触发器调用规则。
 ### 1.6.3. 重载规则
 一般地，Byteman只会注入规则代码到由`CLASS`指定的类的方法中。有些时候这没有什么用处。例如，下面的规则就是没有啥用的：
-```apache
+```js
 RULE trace Object.finalize
 CLASS java.lang.Object
 METHOD finalize
@@ -142,7 +142,7 @@ DO System.out.println(“Finalizing “ + $0)
 ENDRULE
 ```
 `print`语句取得了方法`Object.finalize()`的入口,虽然JVM只会调用重载后的方法`Object.finalize()`。但这种规则重载并不会改变此方法。所以此规则不会被触发，无论这个trace是多么的有用。(这不是全部的故事——当调用`super.finalize()`时，就会触发此规则)。还有其它的情况，关于重载代码规则的替代。例如，类`Socket`它比较特殊，会被各种不同的类实现`bind`,`accept`等方法。因此，一个规则附加到`Socket.bind()`上时，是不会被触发的。（直到有调用`super.bind()`时，触发条件才成功。）当然，为每一个重载类定义某个规则是必要的。然而，当代码改变了，这就有可能没有什么意义了，并且在某些情况下不能匹配规则。因此Byteman提供了一个简单的语法，以支持重载的代码形式。
-```apache
+```js
 RULE trace Object.finalize
 CLASS ^java.lang.Object
 METHOD finalize
@@ -152,7 +152,7 @@ ENDRULE
 ```
 类名的前缀`^`告诉代理此规则会被应用到所有继承了Object并完成了`finalize`方法的类上或是Object本身上。此前缀也可以用到接口规则上，即：代理会注入规则代码到完成了这个接口类的方法上，也会注入到子类的对于这个接口的重载方法中。  
 :loudspeaker:_如果重载的方法调用了它父类的这个方法时，规则代码会被触发多次。实际上如果是构造方法注入，也经常会发生触发多次的情况（当然这也是必然的，也有会调用父类的构造函数的情况。）_ 这也是可以很容易的避免的，通过在规则中加入某些条件，就比如检测调用方法者的名字。所以，上面的规则可以被更好的重写为以下的形式：
-```apache
+```js
 RULE trace Object.finalize at initial call
 CLASS ^java.lang.Object
 METHOD finalize
@@ -165,7 +165,7 @@ ENDRULE
 前缀`^`也可以与关键字`INTERFACE`组合使用。一般来说，针对于接口的规则仅仅会注入到直接完成此接口的类中。这就表明，简单的`INTERFACE`规则不总是能注入到你所期望的类中。例如：类`ArrayList`继承了类`AbstractList`,而且也完成了接口`List`。`INTERFACE List`规则只会注入到`AbstractList`类中而不会注入到`ArrayList`类中。这种的直观感觉是`AbstractList`类完成了`List`接口的所有方法(有一些方法可能是抽象的)，因此在`ArrayList`类中任何重新完成接口的方法，都被当作是重载方法。可以用前缀`^`达到预期的效果。如果这种`INTERFACE ^List`规则被使用，那么它会被注入到`ArrayList`和`AbstractList`两个类中。:loudspeaker:_注意：在类的继承和接口的继承方面，还是有一些细微的差别的。_ 同级别的类可以用来诠释接口继承是什么样的。让我们来看一下接口`Collection`,它继承自接口`List`。当一个规则试图附加到`INTERFACE Collection`时，那么它可以注入到任何完成了接口`Collection`的类中，也可以注入到继承了`Collection`接口的接口，并完成了继承接口的全部方法的类中。一旦`List`继承了`Collection`这就意味实现了接口的类例如`AbstractList`会是一个规则的候选对象。这是因为`AbstractList`是类继承（`List`继承了`Collection`）等级的第一个类，它完也在`Collection`的所有方法。（即使它仅仅是一个抽象方法）。类`ArrayList`将不会是注入的候选对象，因为所以预完成的由`Collection`声明的方法，都是被`AbstractList`类重载完成的。如果你需要将规则注入到类`ArrayList`中，那么你需要使用`INTEERFACE ^Collection`语句来定义。
 ### 1.6.5. 位置说明符
 上面的例子中，即指定了触发点在触发方法中的行号（使用`AT LINE`指定）也指定了开始的方法。明显地，行号可以用来指定任何的点，在执行期间，并且也是简单方便地，对于那些不会改变的代码。然而对于自动化测试，代码会不断的变化，这种方法就不是太好用。显然当代码被修改，访问的测试代码也需要修改。但是，也很容易根据被修改过的代码，修改原本的行号。幸运的是，这还有其它一些指定触发点的方法。例如：
-```apache
+```js
 # location specifier example
 RULE countdown at commit
 CLASS CoordinatorEngine
@@ -186,7 +186,7 @@ if (current == State.STATE_PREPARED_SUCCESS) {
 . . .
 ```
 上例中，在字节码中第一个写入操作(istore)后会立即插入上面的那个出发点，写入操作会更新堆栈中存储`current`的位置。也就是说，在代码中本地变量`current`被初始化后触发器被触发。对比一下，下面的规则，在本地变量`recovered`被读后的触发器：
-```apache
+```js
 # location specifier example 2
 RULE add countdown at recreate
 CLASS CoordinatorEngine
@@ -197,7 +197,7 @@ ENDRULE
 ```
 :loudspeaker:_注意：上面的例子中，字段类型确保了它是属于类`CoordinatorEngine`的一个属性。没有指定类型时，规则会匹配任何读到的名字为`recovered`的字段。_  
 所的位置说明符定义如下：
-```apache
+```js
 AT ENTRY
 AT EXIT
 AT LINE number
@@ -228,7 +228,7 @@ AT THROW [count | ALL ]
 * `AT THROW`指定了在触发方法内的`throw`操作被指定为触发点。`throw`操作也可以指定异常的类型名（包名也可加入）。如果指定了`N`，则会在第`N`次抛出异常时触发，如果指定了关键字`ALL`，则在每次抛出对应的异常时会被触发。**注：当有多个规则指定了相同的位置时，它们注入的顺序，取决于它们各自脚步的书写顺序，有一个特例即`AFTER`的顺序，会是书写顺序的倒序。当位置说明符（除了`ENTRY`或`EXIT`外）被用在重载规则中，那么，与位置说明符匹配的规则代码只会被注入到原始的方法中或重载后的方法中。因此，例如位置说明符`AT READ myField 2`标识的规则，仅仅被注入到了实现了某个方法，且此方法包含了一个被载入了2次的字段`myField`。不匹配的方法，会被位置说明符忽略。由于共识的原因，`CALL`与`INVOKER`被当作同义词，`RETURN`与`EXIT`是同义词，并且`AT LINE`中的`AT`是可选的。**
 ### 1.6.6. 规则绑定
 事件规则中，包含了绑定规则，它可以获取变量的值，这个值是由后面的规则体决定的。这个值在每次规则触发后都会在检测规则条件之前被计算。例如：
-```apache
+```js
 # binding example
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -275,7 +275,7 @@ ENDRULE
 * Byteman提供了英语关键字列表，它们可以用来替代与之相应的Java操作符，Java操作符在（）中的部分：`OR(||),AND(&&),NOT(!),LE(<=),LT(<),EQ(==),NE(!=),GE(>=),GT(>),TIMES(*),DIVIDE(/),PLUS(+),MINUS(-),MOD(%)`。关键字可是使用大写或小写字母，但大小写字母不可以混用。在Byteman规则中，目标类和方法中，不要使用这些关键字，否则会有冲突。
 ### 1.6.8. 规则条件
 规则条件，只不过是`boolean`型的规则表达式。例如：
-```apache
+```js
 # condition example
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -289,7 +289,7 @@ IF recovered
 ENDRULE
 ```
 上例，仅仅是测试了一下绑定变量`recovered`的值。使用下面的条件也可实现一样的效果：
-```apache
+```js
 # condition example 2
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -302,7 +302,7 @@ IF engine.isRecovered()
 ENDRULE
 ```
 另外，如果实例使用的是公有的字段`recovered`存储方法`isRecovered`的`boolean`返回值，效果与之前的是一样的，实现的代码如下：
-```apache
+```js
 # condition example 3
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -317,7 +317,7 @@ ENDRULE
 :loudspeaker:_注意：`boolean`值`true`是可用的表达式，因此当一个条件表达式使用`true`时，那么它总是会被触发。_
 ### 1.6.9. 规则动作
 规则动作，可以是一个规则表达式，也可以是一个返回或抛出异常的动作，也可以是一些有序的通过分号间隔的规则表达式，很可能以返回或抛出异常的动作结尾。在动作列表中使用的规则表达式可以是任意的类型，包括`void`类型。返回动作是以`return`开头的，后面可是跟随一个规则表达式，它是用来计算返回值的。如果仅仅如果方法是`void`的，那么触发方法的返回动作可以被忽略。如果有返回值，那么类型检查器会确保，返回类型可以被触发器方法访问。因此，如下面的例子中使用的方法返回的`boolean`就是合法的：
-```apache
+```js
 # return example
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -329,7 +329,7 @@ return false
 ENDRULE
 ```
 抛出动作是以`throw`为关键字，后面跟随一个`throwable`的构造函数表达式。`throwable`构造函数表达式是由关键字`new`后面跟上`throwable`的类名，抛出的是参数列表确定的异常。参数列表可以为空，即一对空括号。另外，括号中也可以写上简单的规则表达式或有序的规则表达式，一使用逗号分隔。如果没有参数，那么抛出的类型需要完成空的构造函数。如果有参数，那么抛出的类型需要完成类型兼容的构造函数。_:loudspeaker:注：对于跟在`throw`关键字后的`new`关键字可以忽略，在`throwable`的构造函数中。_`throw`动作会导致创建一个`throwable`类型名的对象，这个对象定义在异常构造中，由触发函数抛出。为了使这个动作有效，表达式类型必须是`java.lang.RuntimeException`或`java.lang.Error`亦或明确地在出发函数抛出列表中明确声明过的。如果以上的条件不满足，那么类型检查器会抛出一个`type exception`。所以，例如，以下使用`throw`是合法的，假设方法`commit`的抛出列表中包括了`WrongStateException`异常。
-```apache
+```js
 # 2. throw example
 RULE countdown at commit
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -343,7 +343,7 @@ ENDRULE
 空的动作列表可以使用关键字`NOTHING`指定。
 ### 1.6.10. 内联调用
 内联调用没有接受者，就象调用`this`中的方法一样。规则引擎识别了这种形式，并把它们转换成运行时调用的`helper`类实例的方法。因此，参考上面的几个例子，这显然是`helper`类完成了`debugging`方法的签名。`boolean debug（String message）`这个方法为`System.out`提供了打印的字符串，并返回了`true`。它可以使用规则动作来`trace`信息，例如：`DO debug("killing JVM"), killJVM()`。当`debug`内联方法被执行，规则引擎调用了当前的`helper`实例的方法，并传递字符串参数“killing JVM"。方法killJVM是另一个内联完成的缺省实例`Helper`类的方法。*:loudspeaker:注意：方法`debug`有一个`boolean`型的返回值，因此`tracing`也可以当作规则条件来执行。* 这种情况也会经常出现，在测试某些绑定变量或方法参数。例如：
-```apache
+```js
 IF debug(“checking for recovered participant”)
 AND
 participant.isRecovered()
@@ -354,7 +354,7 @@ debug(“recovered participant “ + participant.getId())
 规则语言自动完成并暴露了所有的`Helper`类的公共方法，当作内联操作符。因此，当规则类型检查器发现`debug`方法的没有接受方调用时，它会识别`Helper`类的方法并自动对这个方法进行类型检查。在执行时间调用被执行通过调用`helper`实例的`debug`在规则触发器调用时。这一特性允许额外的内联被加入到规则引擎，仅仅是增加新的`helper`实现。为此类型检查器和编译器不需要做任何改变。
 ### 1.6.11. 用户自定义规则Helpers
 规则在需要时可以指定自已的`helper`类，这个类可以扩展、重载以及替换现有的内联调用，它可以用在事件，条件或动作中。例如：在以下的规则中，类`FailureTester`被用作`helper`类。`boolean`型实例方法`doWrongState(CoordinatorEnginge)`被当作条件来调用，它决定了是否需要抛出`WrongStateException`的异常。
-```apache
+```js
 # helper example
 RULE help yourself
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -366,7 +366,7 @@ DO throw new WrongStateException()
 ENDRULE
 ```
 `helper`类不需要完成任何特定的接口或继承任何预先指定的类。它仅仅需要提供实例方法，来支撑发生在规则中的内联调用。子类继承缺省`helper`，它很可能扩展或重载了一套缺省的方法。例如，下面的规则使用了一个`helper`，它为规则加入了重要信息打印的功能。
-```apache
+```js
 # 2. helper example 2
 RULE help yourself but rely on others
 CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
@@ -391,7 +391,7 @@ class HelperSub extends Helper
 ```
 上面的规则仍然可以使用内联函数`flag`和`flaged`，它们定义在缺省的helper类中。  
 以上例子使用了`HELPER`行在规则体中来重置指定`helper`类。对于所有的规则重置`helper`也是可以的， 在文件中通过加入`HELPER`行在规则之外。因此，下面例子中开始的两个规则中使用了类`HelperSub`，而第三个用的是`YellowSub`。
-```apache
+```js
 HELPER HelperSub
 # helper example 3
 RULE helping hand
@@ -539,7 +539,7 @@ public boolean deleteTimer(Object o)
 - `deleteTimer` 此方法用来删除访问`o`的`Timer`模式。`deleteTimer`在新创建的`Timer`模式被删除时返回`true`；如果没有访问`o`的`Timer`模式则返回`false`。
 ##### 1.6.13.2.5. Recursive Triggering模式（循环触发模式）
 当规则被触发时，它执行了事件的、条件的以及动作的`Java`代码。这其中可以包含调用`Helper`方法，或者定义在测试程序中的方法或者JVM的方法。如果这些方法中任意的匹配了`Byteman`的规则，那么将会导致规则执行器的循环执行。在一些情况下这也许就是我们想要的效果。然而，另一些情况下循环执行会导致触发链式无限循环，并且在规则执行时，有必要将这种情况禁止掉。例如，下面的规则就是由于上述的原因产生了问题：
-```apache
+```js
 RULE infinite triggering chain
 CLASS java.io.FileOutputStream
 METHOD open(String, int)
@@ -550,7 +550,7 @@ DO traceln(“openlog”, “Opened “ + $1 + “ for write”)
 ENDRULE
 ```
 上面的代码问题在于第一个调用默认`helper`类的内建方法`traceln(Object, String)`试图打开 一个`trace`文件，它之后会访问关键字“openlog”。这么做会使它尝试打开文件调用`FileOutputStream.open`并且会重复触发规则。解决上面问题的一个方法是指定一个可以破坏链的条件。`trace`文件的文件名可以指定为“trace*NNN*.txt”,下面版本的规则定义如下：
-```apache
+```js
 RULE infinite triggering chain broken using IF test
 CLASS java.io.FileOutputStream
 METHOD open(String, int)
@@ -565,7 +565,7 @@ ENDRULE
 public boolean setTriggering(boolean enabled)
 ```
 使用上面的语句可以不用特意的去指定适合的条件下下面的例子所示：
-```apache
+```js
 RULE infinite triggering chain broken using IF test
 CLASS java.io.FileOutputStream
 METHOD open(String, int)
@@ -606,7 +606,7 @@ public boolean traceln(String message)
 #### 1.6.14.4. 栈管理操作类
 ##### 1.6.14.4.1. 检测调用树
 规则引擎提供一套内联方法，它们可以用来检测调用栈在规则触发的时候。显然，规则只有当触发方法与`METHOD`语句指定的名字相匹配时才会触发。然而，某些时候知道那个方法触发了规则也是很有用的。例如下面的规则，当`MyClass.getData()`被`MyOtherClass`的方法`handleIncoming`调用：
-```apache
+```js
 RULE trace getData call under handleIncoming
 CLASS MyClass
 METHOD myGetData
@@ -765,5 +765,87 @@ Default helper deactivated
 4. 运行时的配置参数   
 ![设置参数](_v_images/设置参数_1538659693_8518.png)
 ### 1.7.2. 命令行执行Byteman
-命令行使用`bmjava`完成程序执行
+#### 方式1
+&emsp;&emsp;这种方式是方法2的一个简版，具体描述参见方法2。命令行使用`bmjava`完成程序执行
 > bmjava -l thread.btm org.my.AppMain2 foo bar baz
+#### 方式2
+&emsp;&emsp;此种方式的应用场景是：你在程序开始执行时就加载相关的规则，后面也不考虑再添加规则了。
+程序如下：
+```java
+package org.my;
+class AppMain
+{
+     public static void main(String[] args)
+     {
+         for (int i = 0; i < args.length; i++) {
+             System.out.println(args[i]);
+         }
+     }
+}
+```
+使用如下脚本注入设置脚本名为：`appmain.btm`
+``` js
+RULE trace main entry
+     CLASS AppMain
+     METHOD main
+     AT ENTRY
+     IF true
+          DO traceln("entering main")
+ENDRULE
+
+ 
+
+RULE trace main exit
+     CLASS AppMain
+     METHOD main
+     AT EXIT
+     IF true
+          DO traceln("exiting main")
+ENDRULE
+```
+执行方式如下：
+> java -javaagent:byteman.jar=script:ClassLoadMonitor.btm -jar unifiedanalysis-0.0.2.jar
+
+_i 注释：当有多个脚本时，可用`,`隔开_
+![执行效果](vx_images/3523907180665.png)
+
+#### 方法3
+&emsp;&emsp;此种方式在程序启动时讲Byteman加载到内存中，并开启监听，以便后面根据情况加载适用的规则。
+执行方式如下：
+> java -javaagent:%BYTEMAN_HOME%\lib\byteman.jar=listener:true,boot:%BYTEMAN_HOME%\lib\byteman.jar -Dorg.jboss.byteman.transform.all -jar unifiedanalysis-0.0.2.jar
+![屏幕截图](vx_images/3554041129092.png)
+
+使用`bmsubmit`将对应的规则加载到内存中使用如下命令
+> bmsubmit -l ClassLoadMonitor.btm
+![屏幕截图](vx_images/2149944116959.png)
+
+使用`bmsubmit -l`查看已经加载上的规则代码，命令如下：
+> bmsubmit -l
+![屏幕截图](vx_images/462610147125.png)
+
+使用`bmsubmit.sh -u`方法进行卸载规则代码。如果后没有参数则标识所有的规则，后面有参数标识特定的规则
+> bmsubmit -u ClassLoadMonitor.btm
+![屏幕截图](vx_images/5331313139794.png)
+
+**在使用方法3和方法4时，由于在执行后追加的脚本，所以我们想要知道写的规则是否正确。这就需要使用`bmcheck`命令来检查。格式如下：**
+> bmcheck -p com.flycua.analysis -cp ./classes ClassLoadMonitor.btm
+![屏幕截图](vx_images/5495130156349.png)
+_说明:`-p`指定规则中的包名前提是你在规则中没有指定包名。`-cp`指定类路径，不指定会导致检查失败!!_
+
+#### 方法4
+&emsp;&emsp;本方法适用于，为已经运行的程序注入规则代码。分为以下几个步骤：
+1. 找到要注入的程序，使用如下命令：
+> jps -v
+![屏幕截图](vx_images/5211311172103.png)
+
+2. 安装ByteMan到进程中，使用如下命令：
+> bminstall 21820
+![屏幕截图](vx_images/1991512189983.png)
+
+3. 检查规则脚本文件是否正确，命令如下：
+> bmcheck -p com.flycua.analysis -cp ./classes ClassLoadMonitor.btm
+参见上面的截图
+
+4. 安装规则脚本到程序中，命令如下：
+> bmsubmit -l ClassLoadMonitor.btm
+参见上面的截图

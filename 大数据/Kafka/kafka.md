@@ -74,6 +74,7 @@ if(key == null) {  // 如果没有指定key
 ## 1.5. 消费者与分区的关系
 topic下的一个分区只能被同一个consumer group下的一个consumer线程来消费，但反之并不成立，即一个consumer线程可以消费多个分区的数据，比如Kafka提供的ConsoleConsumer，默认就只是一个线程来消费所有分区的数据。**<font color = red>即分区数决定了同组消费者个数的上限</font>**
 ![](_v_images/20200326170444149_31014.png)
+
 所以，如果你的分区数是N，那么最好线程数也保持为N，这样通常能够达到最大的吞吐量。超过N的配置只是浪费系统资源，因为多出的线程不会被分配到任何分区。
 ### 1.5.1. 消费者分配分区的策略
 Kafka提供的两种分配策略： range和roundrobin，由参数partition.assignment.strategy指定，默认是range策略。
